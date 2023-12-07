@@ -13,7 +13,7 @@ canvas = np.zeros((background_height, background_width, 3), dtype=np.uint8)
 loaded_canvas = np.zeros((background_height, background_width, 3), dtype=np.uint8)
 
 # Read actuation data from a text file
-input_file_path = "actuation_data.txt"
+input_file_path = "custom_actuation_data.txt"
 actuation_data = {}
 
 with open(input_file_path, 'r') as file:

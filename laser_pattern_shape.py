@@ -26,7 +26,7 @@ rectangles = [
 ]
 
 # Actuation state initialization
-rectangle_actuated = {rect["name"]: [] for rect in rectangles}
+actuation_data = {rect["name"]: [] for rect in rectangles}
 
 # Function to draw a circle
 def draw_circle(canvas, x, y, size, color):
@@ -90,7 +90,7 @@ while pattern_x < background_width:
             for rect_pt in chosen_contour
         )
 
-        rectangle_actuated[rect["name"]].append(1 if in_rectangle else 0)
+        actuation_data[rect["name"]].append(1 if in_rectangle else 0)
         shape_color = (0, 255, 0) if in_rectangle else (255, 0, 0)
 
         # Draw the rectangle
@@ -113,13 +113,13 @@ while pattern_x < background_width:
 cv2.destroyAllWindows()
 
 # Plot the actuated state over time for each rectangle
-time_points = list(range(len(rectangle_actuated["1"])))
+time_points = list(range(len(actuation_data["1"])))
 
 plt.figure(figsize=(12, 8))
 
 for i, rect in enumerate(rectangles):
     plt.subplot(2, 3, i + 1)  # Adjust the layout based on the number of rectangles
-    plt.plot(time_points, rectangle_actuated[rect["name"]], label=f'Rectangle {rect["name"]} Actuated')
+    plt.plot(time_points, actuation_data[rect["name"]], label=f'Rectangle {rect["name"]} Actuated')
     plt.xlabel('Time')
     plt.ylabel('Actuated State (1/0)')
     plt.title(f'Actuation in Rectangle {rect["name"]}')
@@ -127,4 +127,13 @@ for i, rect in enumerate(rectangles):
 plt.tight_layout()
 plt.show()
 
-print(rectangle_actuated)
+print(actuation_data)
+
+# Write actuation data to a text file
+output_file_path = CHOSEN_SHAPE + "_actuation_data.txt"
+with open(output_file_path, 'w') as file:
+    for key, values in actuation_data.items():
+        file.write(f'{key}: {values}\n')
+
+# Confirm that the file has been written
+print(f"Output has been written to {output_file_path}")

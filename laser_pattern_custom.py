@@ -9,7 +9,7 @@ background_height = 900
 vertical_translation = 0  # vertically translate your laser pattern (positive means pattern is lowered down)
 
 # Initial settings
-INPUT_IMAGE_PATH = 'Picture 1.png'
+INPUT_IMAGE_PATH = 'Custom 1.png'
 OUTPUT_IMAGE_PATH = INPUT_IMAGE_PATH[:-4] + '_resized.png'
 TARGET_HEIGHT = 400  # change size of the laser pattern accordingly
 
@@ -122,7 +122,7 @@ plt.tight_layout()
 plt.show()
 
 # Write actuation data to a text file
-output_file_path = "actuation_data.txt"
+output_file_path = "custom_actuation_data.txt"
 with open(output_file_path, 'w') as file:
     for key, values in actuation_data.items():
         file.write(f'{key}: {values}\n')
