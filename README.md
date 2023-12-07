@@ -26,7 +26,7 @@ This module simulates custom-shaped laser patterns. To use:
 - Run the code to visualize the simulation and actuation plot.
 - The resized shape is saved as a PNG file.
 
-### Reverse_calculation.py
+### reverse_calculation.py
 
 This module assists in reverse calculation, recreating light patterns from the `actuation_data.txt` file. To use:
 
