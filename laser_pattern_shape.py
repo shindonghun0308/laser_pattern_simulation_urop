@@ -2,22 +2,21 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
+# Constants
 CHOSEN_SHAPE = 'triangle'
-# Define the dimensions of the background
 background_width = 1200
 background_height = 900
 
-# Create an empty canvas (black background)
+# Create canvases
 canvas = np.zeros((background_height, background_width, 3), dtype=np.uint8)
 contour_canvas = np.zeros((background_height, background_width), dtype=np.uint8)
 
-# Define the properties of the laser pattern (size, color, speed)
+# Laser pattern properties
 pattern_color = (255, 255, 255)  # White color
 pattern_size = 100  # Size of the laser pattern
 pattern_speed = 5  # Speed of the laser pattern's movement
 
-
-# Define the positions and sizes of the five rectangles
+# Rectangle positions and sizes
 rectangles = [
     {"name": "1", "x": 300, "y": 300, "width": 200, "height": 100},
     {"name": "2", "x": 300, "y": 500, "width": 200, "height": 100},
@@ -26,7 +25,7 @@ rectangles = [
     {"name": "5", "x": 700, "y": 500, "width": 200, "height": 100},
 ]
 
-# Initialize the actuation state for all rectangles to 0
+# Actuation state initialization
 rectangle_actuated = {rect["name"]: [] for rect in rectangles}
 
 # Function to draw a circle
@@ -34,65 +33,53 @@ def draw_circle(canvas, x, y, size, color):
     cv2.circle(canvas, (x, y), size, color, thickness=2)
 
 def get_circle_contour(x, y, size):
-    contour_canvas.fill(0)  # Clear the contour canvas
+    contour_canvas.fill(0)
     cv2.circle(contour_canvas, (x, y), size, color=255, thickness=2)
     contours, _ = cv2.findContours(contour_canvas, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    contour_coordinates = []
-    for contour in contours:
-        contour_coordinates.extend(contour.reshape(-1, 2).tolist())
-    return contour_coordinates
+    return contours[0].reshape(-1, 2).tolist()
 
-#-------------------------------------------------------------------------_#
+# Function to draw a triangle
 def draw_triangle(canvas, x, y, size, color):
     triangle_pts = np.array([
-        [x-4*size, y-size],  # left top vertex
-        [x-4*size, y+size],  # left bottom vertex
-        [x+ 4*size, y],  # right vertex
+        [x - 4 * size, y - size],
+        [x - 4 * size, y + size],
+        [x + 4 * size, y],
     ])
     cv2.polylines(canvas, [triangle_pts], isClosed=True, color=color, thickness=2)
 
 def get_triangle_contour(x, y, size):
     triangle_pts = np.array([
-        [x-4*size, y-size],  # left top vertex
-        [x-4*size, y+size],  # left bottom vertex
-        [x+ 4*size, y],  # right vertex
+        [x - 4 * size, y - size],
+        [x - 4 * size, y + size],
+        [x + 4 * size, y],
     ])
     contour_canvas.fill(0)
     cv2.polylines(contour_canvas, [triangle_pts], isClosed=True, color=255, thickness=2)
     contours, _ = cv2.findContours(contour_canvas, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    contour_coordinates = []
-    for contour in contours:
-        contour_coordinates.extend(contour.reshape(-1, 2).tolist())
-    return contour_coordinates
-
-
+    return contours[0].reshape(-1, 2).tolist()
 
 # Main loop for moving the laser pattern across the robot's surface
 pattern_x = 0
 
 while pattern_x < background_width:
-    # Clear the canvas on each iteration
-    canvas.fill(0)
-
-    # Calculate the axis of the laser pattern moving (vertical center)
+    canvas.fill(0)  # Clear the canvas on each iteration
     pattern_center_x = pattern_x
     pattern_center_y = background_height // 2
 
-    # Check if the laser pattern intersects with the area of each rectangle
+    # Get the contour based on the chosen shape
+    if CHOSEN_SHAPE == 'circle':
+        chosen_contour = get_circle_contour(pattern_center_x, pattern_center_y, pattern_size)
+    elif CHOSEN_SHAPE == 'triangle':
+        chosen_contour = get_triangle_contour(pattern_center_x, pattern_center_y, pattern_size)
+
+    # Check intersection with each rectangle
     for rect in rectangles:
-        # Create the vertices of the rectangle as a polygon
         rect_pts = np.array([
             [rect["x"], rect["y"]],
             [rect["x"] + rect["width"], rect["y"]],
             [rect["x"] + rect["width"], rect["y"] + rect["height"]],
             [rect["x"], rect["y"] + rect["height"]]
         ])
-
-        if CHOSEN_SHAPE == 'circle':
-            chosen_contour = get_circle_contour(pattern_center_x, pattern_center_y, pattern_size)
-        if CHOSEN_SHAPE == 'triangle':
-            chosen_contour = get_triangle_contour(pattern_center_x, pattern_center_y, pattern_size)
-            
 
         # Check if the pattern outline intersects with the rectangle
         in_rectangle = any(
@@ -104,21 +91,18 @@ while pattern_x < background_width:
         )
 
         rectangle_actuated[rect["name"]].append(1 if in_rectangle else 0)
-        if in_rectangle:
-            shape_color = (0, 255, 0)
-        else:
-            shape_color = (255, 0, 0)
+        shape_color = (0, 255, 0) if in_rectangle else (255, 0, 0)
 
         # Draw the rectangle
         cv2.fillPoly(canvas, [rect_pts], shape_color)
 
-    # Draw the circle after the rectangle to ensure it is behind
+    # Draw the chosen shape
     if CHOSEN_SHAPE == "circle":
         draw_circle(canvas, pattern_center_x, pattern_center_y, pattern_size, pattern_color)
-    if CHOSEN_SHAPE == "triangle":
+    elif CHOSEN_SHAPE == "triangle":
         draw_triangle(canvas, pattern_center_x, pattern_center_y, pattern_size, pattern_color)
 
-    # Show the canvas (you can replace this with actual robot actuation)
+    # Show the canvas
     cv2.imshow("Laser Pattern", canvas)
     cv2.waitKey(10)  # Adjust the delay as needed
 
